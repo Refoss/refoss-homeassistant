@@ -34,4 +34,4 @@ If not found in Home Assistant Community Store, you can also install it used [Cu
 | ----------- |--------------------|
 | `Refoss Smart Wi-Fi Switch, R10`    | `all`              |
 | `Refoss Smart Energy Monitor, EM06` | `v2.3.8 and above` |
-
+| `Refoss Smart Energy Monitor, EM16` | `v3.1.7 and above` |
