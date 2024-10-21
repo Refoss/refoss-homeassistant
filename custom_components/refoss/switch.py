@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .refoss_ha.controller.toggle import ToggleXMix
+from refoss_ha.controller.toggle import ToggleXMix
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry

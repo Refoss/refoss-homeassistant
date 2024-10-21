@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from .refoss_ha.device import DeviceInfo
-from .refoss_ha.device_manager import async_build_base_device
-from .refoss_ha.discovery import Discovery, Listener
+from refoss_ha.device import DeviceInfo
+from refoss_ha.device_manager import async_build_base_device
+from refoss_ha.discovery import Discovery, Listener
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -14,7 +14,7 @@ from .coordinator import RefossDataUpdateCoordinator
 
 
 class DiscoveryService(Listener):
-    """Discovery event handler for refoss_lan devices."""
+    """Discovery event handler for refoss devices."""
 
     def __init__(self, hass: HomeAssistant, discovery: Discovery) -> None:
         """Init discovery service."""
@@ -30,7 +30,7 @@ class DiscoveryService(Listener):
 
         device = await async_build_base_device(device_info)
         if device is None:
-            return None
+            return
 
         coordo = RefossDataUpdateCoordinator(self.hass, device)
         self.hass.data[DOMAIN][COORDINATORS].append(coordo)

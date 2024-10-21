@@ -1,11 +1,11 @@
-"""Support for refoss_lan sensors."""
+"""Support for refoss sensors."""
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from .refoss_ha.controller.electricity import ElectricityXMix
+from refoss_ha.controller.electricity import ElectricityXMix
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -35,12 +35,12 @@ from .const import (
 from .entity import RefossEntity
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class RefossSensorEntityDescription(SensorEntityDescription):
     """Describes Refoss sensor entity."""
 
-    subkey: str | None = None
-    fn: Callable[[float], float] | None = None
+    subkey: str
+    fn: Callable[[float], float] = lambda x: x
 
 
 SENSORS: dict[str, tuple[RefossSensorEntityDescription, ...]] = {
@@ -91,7 +91,67 @@ SENSORS: dict[str, tuple[RefossSensorEntityDescription, ...]] = {
             native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
             suggested_display_precision=2,
             subkey="mConsume",
-            fn=lambda x: x if x > 0 else 0,
+            fn=lambda x: max(0, x),
+        ),
+        RefossSensorEntityDescription(
+            key="energy_returned",
+            translation_key="this_month_energy_returned",
+            device_class=SensorDeviceClass.ENERGY,
+            state_class=SensorStateClass.TOTAL,
+            native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+            suggested_display_precision=2,
+            subkey="mConsume",
+            fn=lambda x: abs(x) if x < 0 else 0,
+        ),
+    ),
+    "em16": (
+        RefossSensorEntityDescription(
+            key="power",
+            translation_key="power",
+            device_class=SensorDeviceClass.POWER,
+            state_class=SensorStateClass.MEASUREMENT,
+            native_unit_of_measurement=UnitOfPower.WATT,
+            suggested_display_precision=2,
+            subkey="power",
+            fn=lambda x: x / 1000.0,
+        ),
+        RefossSensorEntityDescription(
+            key="voltage",
+            translation_key="voltage",
+            device_class=SensorDeviceClass.VOLTAGE,
+            state_class=SensorStateClass.MEASUREMENT,
+            native_unit_of_measurement=UnitOfElectricPotential.MILLIVOLT,
+            suggested_display_precision=2,
+            suggested_unit_of_measurement=UnitOfElectricPotential.VOLT,
+            subkey="voltage",
+        ),
+        RefossSensorEntityDescription(
+            key="current",
+            translation_key="current",
+            device_class=SensorDeviceClass.CURRENT,
+            state_class=SensorStateClass.MEASUREMENT,
+            native_unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
+            suggested_display_precision=2,
+            suggested_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+            subkey="current",
+        ),
+        RefossSensorEntityDescription(
+            key="factor",
+            translation_key="power_factor",
+            device_class=SensorDeviceClass.POWER_FACTOR,
+            state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=2,
+            subkey="factor",
+        ),
+        RefossSensorEntityDescription(
+            key="energy",
+            translation_key="this_month_energy",
+            device_class=SensorDeviceClass.ENERGY,
+            state_class=SensorStateClass.TOTAL,
+            native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+            suggested_display_precision=2,
+            subkey="mConsume",
+            fn=lambda x: max(0, x),
         ),
         RefossSensorEntityDescription(
             key="energy_returned",
@@ -115,24 +175,25 @@ async def async_setup_entry(
     """Set up the Refoss device from a config entry."""
 
     @callback
-    def init_device(coordinator):
+    def init_device(coordinator: RefossDataUpdateCoordinator) -> None:
         """Register the device."""
         device = coordinator.device
 
         if not isinstance(device, ElectricityXMix):
             return
-        descriptions = SENSORS.get(device.device_type)
-        new_entities = []
-        for channel in device.channels:
-            for description in descriptions:
-                entity = RefossSensor(
-                    coordinator=coordinator,
-                    channel=channel,
-                    description=description,
-                )
-                new_entities.append(entity)
+        descriptions: tuple[RefossSensorEntityDescription, ...] = SENSORS.get(
+            device.device_type, ()
+        )
 
-        async_add_entities(new_entities)
+        async_add_entities(
+            RefossSensor(
+                coordinator=coordinator,
+                channel=channel,
+                description=description,
+            )
+            for channel in device.channels
+            for description in descriptions
+        )
 
     for coordinator in hass.data[DOMAIN][COORDINATORS]:
         init_device(coordinator)
@@ -169,6 +230,4 @@ class RefossSensor(RefossEntity, SensorEntity):
         )
         if value is None:
             return None
-        if self.entity_description.fn is not None:
-            return self.entity_description.fn(value)
-        return value
+        return self.entity_description.fn(value)
