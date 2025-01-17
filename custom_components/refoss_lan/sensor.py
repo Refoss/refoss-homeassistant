@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-
-from .refoss_ha.controller.electricity import ElectricityXMix
-
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -20,19 +17,14 @@ from homeassistant.const import (
     UnitOfEnergy,
     UnitOfPower,
 )
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
-from .bridge import RefossDataUpdateCoordinator
-from .const import (
-    CHANNEL_DISPLAY_NAME,
-    COORDINATORS,
-    DISPATCH_DEVICE_DISCOVERED,
-    DOMAIN,
-)
+from .const import CHANNEL_DISPLAY_NAME, DOMAIN, SENSOR_EM
 from .entity import RefossEntity
+from .refoss_ha.controller.electricity import ElectricityXMix
+from .coordinator import RefossDataUpdateCoordinator
 
 
 @dataclass(frozen=True)
@@ -43,8 +35,13 @@ class RefossSensorEntityDescription(SensorEntityDescription):
     fn: Callable[[float], float] | None = None
 
 
+DEVICETYPE_SENSOR: dict[str, str] = {
+    "em06": SENSOR_EM,
+    "em16": SENSOR_EM,
+}
+
 SENSORS: dict[str, tuple[RefossSensorEntityDescription, ...]] = {
-    "em06": (
+    SENSOR_EM: (
         RefossSensorEntityDescription(
             key="power",
             translation_key="power",
@@ -91,7 +88,7 @@ SENSORS: dict[str, tuple[RefossSensorEntityDescription, ...]] = {
             native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
             suggested_display_precision=2,
             subkey="mConsume",
-            fn=lambda x: x if x > 0 else 0,
+            fn=lambda x: max(0, x),
         ),
         RefossSensorEntityDescription(
             key="energy_returned",
@@ -173,33 +170,29 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Refoss device from a config entry."""
+    coordinator: RefossDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
-    @callback
-    def init_device(coordinator):
+    device = coordinator.device
+    if not isinstance(device, ElectricityXMix):
+        return
+
+    def init_device(device: ElectricityXMix):
         """Register the device."""
-        device = coordinator.device
+        sensor_type = DEVICETYPE_SENSOR.get(device.device_type, "")
+        descriptions: tuple[RefossSensorEntityDescription, ...] = SENSORS.get(
+            sensor_type, ()
+        )
+        async_add_entities(
+            RefossSensor(
+                coordinator=coordinator,
+                channel=channel,
+                description=description,
+            )
+            for channel in device.channels
+            for description in descriptions
+        )
 
-        if not isinstance(device, ElectricityXMix):
-            return
-        descriptions = SENSORS.get(device.device_type)
-        new_entities = []
-        for channel in device.channels:
-            for description in descriptions:
-                entity = RefossSensor(
-                    coordinator=coordinator,
-                    channel=channel,
-                    description=description,
-                )
-                new_entities.append(entity)
-
-        async_add_entities(new_entities)
-
-    for coordinator in hass.data[DOMAIN][COORDINATORS]:
-        init_device(coordinator)
-
-    config_entry.async_on_unload(
-        async_dispatcher_connect(hass, DISPATCH_DEVICE_DISCOVERED, init_device)
-    )
+    init_device(device)
 
 
 class RefossSensor(RefossEntity, SensorEntity):
@@ -225,10 +218,10 @@ class RefossSensor(RefossEntity, SensorEntity):
     def native_value(self) -> StateType:
         """Return the native value."""
         value = self.coordinator.device.get_value(
-            self.channel_id, self.entity_description.subkey
+            self.channel, self.entity_description.subkey
         )
         if value is None:
             return None
-        if self.entity_description.fn is not None:
+        if self.entity_description.fn:
             return self.entity_description.fn(value)
         return value

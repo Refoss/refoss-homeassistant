@@ -1,58 +1,57 @@
-"""Refoss devices platform loader."""
-
+"""The refoss_lan integration."""
 from __future__ import annotations
 
-from datetime import timedelta
 from typing import Final
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import Platform, CONF_HOST
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.exceptions import ConfigEntryNotReady
 
-from .bridge import DiscoveryService
-from .const import COORDINATORS, DATA_DISCOVERY_SERVICE, DISCOVERY_SCAN_INTERVAL, DOMAIN
-from .util import refoss_discovery_server
+from .refoss_ha.device_manager import async_build_base_device
+from .refoss_ha.device import DeviceInfo
+from .refoss_ha.exceptions import DeviceTimeoutError, InvalidMessage, RefossError
+
+from .refoss_ha.controller.device import BaseDevice
+from .const import DOMAIN, _LOGGER
+from .coordinator import RefossDataUpdateCoordinator
 
 PLATFORMS: Final = [
-    Platform.SENSOR,
     Platform.SWITCH,
+    Platform.SENSOR,
 ]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Refoss from a config entry."""
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Set up refoss_lan from a config entry."""
     hass.data.setdefault(DOMAIN, {})
-    discover = await refoss_discovery_server(hass)
-    refoss_discovery = DiscoveryService(hass, discover)
-    hass.data[DOMAIN][DATA_DISCOVERY_SERVICE] = refoss_discovery
-
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
-    async def _async_scan_update(_=None):
-        await refoss_discovery.discovery.broadcast_msg()
-
-    await _async_scan_update()
-
-    entry.async_on_unload(
-        async_track_time_interval(
-            hass, _async_scan_update, timedelta(seconds=DISCOVERY_SCAN_INTERVAL)
+    data = config_entry.data
+    if not data.get(CONF_HOST) or not data.get("device"):
+        _LOGGER.debug(
+            "The config entry %s invalid, please remove it and try again",
+            config_entry.title,
         )
-    )
+        return False
+    try:
+        device: DeviceInfo = DeviceInfo.from_dict(data["device"])
+        base_device: BaseDevice = await async_build_base_device(device_info=device)
+    except DeviceTimeoutError as err:
+        raise ConfigEntryNotReady(f"Timed out connecting to {data[CONF_HOST]}") from err
+    except InvalidMessage as err:
+        raise ConfigEntryNotReady(f"Device data error {data[CONF_HOST]}") from err
+    except RefossError as err:
+        raise ConfigEntryNotReady(repr(err)) from err
+
+    coordinator = RefossDataUpdateCoordinator(hass, base_device)
+    hass.data[DOMAIN][config_entry.entry_id] = coordinator
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    if hass.data[DOMAIN].get(DATA_DISCOVERY_SERVICE) is not None:
-        refoss_discovery: DiscoveryService = hass.data[DOMAIN][DATA_DISCOVERY_SERVICE]
-        refoss_discovery.discovery.clean_up()
-        hass.data[DOMAIN].pop(DATA_DISCOVERY_SERVICE)
-
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-
-    if unload_ok:
-        hass.data[DOMAIN].pop(COORDINATORS)
-
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        config_entry, PLATFORMS
+    )
     return unload_ok

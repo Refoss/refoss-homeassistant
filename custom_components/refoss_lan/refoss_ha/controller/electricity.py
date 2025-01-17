@@ -16,20 +16,21 @@ class ElectricityXMix(BaseDevice):
     def __init__(self, device: DeviceInfo):
         """Initialize."""
         self.device = device
-        self.status = {}
+        self.electricity_status = {}
         super().__init__(device)
 
     def get_value(self, channel: int, subkey: str):
         """
         Returns the value for the given channel and subkey, or None if not found.
         """
-        channel_status = self.status.get(channel)
+        channel_status = self.electricity_status.get(channel, None)
         if channel_status is not None and subkey in channel_status:
-            return channel_status[subkey]
+            return channel_status.get(subkey, None)
         return None
 
     async def async_handle_update(self):
         """Update device state,65535 get all channel."""
+
         payload = {"electricity": {"channel": 65535}}
         res = await self.async_execute_cmd(
             device_uuid=self.uuid,
@@ -39,14 +40,6 @@ class ElectricityXMix(BaseDevice):
         )
         if res is not None:
             data = res.get("payload", {})
-            await self.async_update_push_state(
-                Namespace.CONTROL_ELECTRICITYX.value, data, self.uuid
-            )
-
-    async def async_update_push_state(self, namespace: str, data: dict, uuid: str):
-        """Update push state."""
-
-        if namespace == Namespace.CONTROL_ELECTRICITYX.value:
             payload = data["electricity"]
             if payload is None:
                 _LOGGER.debug(
@@ -56,4 +49,5 @@ class ElectricityXMix(BaseDevice):
             elif isinstance(payload, list):
                 for state in payload:
                     channel = state["channel"]
-                    self.status[channel] = state
+                    self.electricity_status[channel] = state
+        await super().async_handle_update()

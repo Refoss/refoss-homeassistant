@@ -16,12 +16,12 @@ class ToggleXMix(BaseDevice):
     def __init__(self, device: DeviceInfo):
         """Initialize."""
         self.device = device
-        self.status = {}
+        self.togglex_status = {}
         super().__init__(device)
 
     def is_on(self, channel=0) -> bool | None:
         """is_on(self, channel)."""
-        return self.status.get(channel, None)
+        return self.togglex_status.get(channel, None)
 
     async def async_handle_update(self):
         """Update device state,65535 get all channel."""
@@ -32,16 +32,9 @@ class ToggleXMix(BaseDevice):
             namespace=Namespace.CONTROL_TOGGLEX,
             payload=payload,
         )
+
         if res is not None:
             data = res.get("payload", {})
-            await self.async_update_push_state(Namespace.CONTROL_TOGGLEX.value, data, self.uuid)
-
-    async def async_update_push_state(
-            self, namespace: str, data: dict, uuid: str
-    ):
-        """Update push state."""
-
-        if namespace == Namespace.CONTROL_TOGGLEX.value:
             payload = data["togglex"]
             if payload is None:
                 _LOGGER.debug(
@@ -52,12 +45,13 @@ class ToggleXMix(BaseDevice):
                 for c in payload:
                     channel = c["channel"]
                     switch_state = c["onoff"] == 1
-                    self.status[channel] = switch_state
+                    self.togglex_status[channel] = switch_state
 
             elif isinstance(payload, dict):
                 channel = payload["channel"]
                 switch_state = payload["onoff"] == 1
-                self.status[channel] = switch_state
+                self.togglex_status[channel] = switch_state
+        await super().async_handle_update()
 
     async def async_turn_off(self, channel=0) -> None:
         """Turn off."""
@@ -70,7 +64,7 @@ class ToggleXMix(BaseDevice):
                 payload=payload,
             )
             if res is not None:
-                self.status[channel] = False
+                self.togglex_status[channel] = False
         except DeviceTimeoutError:
             pass
 
@@ -85,7 +79,7 @@ class ToggleXMix(BaseDevice):
                 payload=payload,
             )
             if res is not None:
-                self.status[channel] = True
+                self.togglex_status[channel] = True
         except DeviceTimeoutError:
             pass
 

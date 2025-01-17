@@ -1,12 +1,33 @@
 {
     "config": {
         "abort": {
-            "no_devices_found": "No devices found on the network",
-            "single_instance_allowed": "Already configured. Only a single configuration possible."
+            "already_configured": "Device is already configured",
+            "another_device": "Re-configuration was unsuccessful, the IP address/hostname of another Refoss device was used.",
+            "reconfigure_successful": "Re-configuration was successful"
+        },
+        "error": {
+            "no_devices_found": "No devices found on the network, Please check if the IP address is correct",
+            "cannot_connect": "Failed to connect",
+            "firmware_not_fully_supported": "Device not fully supported. Please contact Refoss support"
         },
         "step": {
-            "confirm": {
-                "description": "Do you want to start setup?"
+            "reconfigure": {
+                "data": {
+                    "host": "Host"
+                },
+                "data_description": {
+                    "host": "The hostname or IP address of the Refoss device to connect to."
+                },
+                "description": "Update configuration for {device_name}.\n\nBefore setup, devices must be connected to the network."
+            },
+            "user": {
+                "data": {
+                    "host": "Host"
+                },
+                "data_description": {
+                    "host": "The hostname or IP address of the Refoss device to connect to."
+                },
+                "description": "Before setup, devices must be connected to the network.\n\nThis path can be configured for refoss product models including R10,EM06,EM16, etc. \n\nFor more information, please refer to 'Help'."
             }
         }
     },
