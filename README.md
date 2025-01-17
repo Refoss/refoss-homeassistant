@@ -1,12 +1,18 @@
 # Refoss LAN
 
-- Revision Date: January 17, 2025
-- Revised Version: v1.0.2
-- Revision Focus: Support for filling in device IP for integration
+## Change record
+- Date: January 17, 2025
+- Latest version: v1.0.2
+- Important note: Support for filling in device IP for integration
 - Integration Type: Changed from hub to device
-- Version Description:
+- Releases Description:
   - v1.0.1: If the user does not know the device IP, the device will be automatically discovered after launching the Refoss Lan integration, but the device and Home Assistant need to be on the same network.
   - v1.0.2: Support for filling in device IP for integration.
+  ![](img/img1.png)
+  ![](img/img2.png)
+    - If the device IP is changed, you can correct it through reconfigure, like this:
+    ![reconfigure](img/img3.png)
+    ![reconfigure](img/img4.png)
 
 
 ## Installation
