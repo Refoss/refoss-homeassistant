@@ -9,7 +9,7 @@ from .controller.toggle import ToggleXMix
 from .controller.electricity import ElectricityXMix
 from .enums import Namespace
 from .device import DeviceInfo
-from .exceptions import DeviceTimeoutError
+from .exceptions import InvalidMessage
 
 _ABILITY_MATRIX = {
     Namespace.CONTROL_TOGGLEX.value: ToggleXMix,
@@ -19,27 +19,21 @@ _ABILITY_MATRIX = {
 
 async def async_build_base_device(device_info: DeviceInfo) -> Optional[BaseDevice]:
     """Build base device."""
-    try:
-        res = await device_info.async_execute_cmd(
-            device_uuid=device_info.uuid,
-            method="GET",
-            namespace=Namespace.SYSTEM_ABILITY,
-            payload={},
-        )
-        if res is None:
-            return None
+    res = await device_info.async_execute_cmd(
+        device_uuid=device_info.uuid,
+        method="GET",
+        namespace=Namespace.SYSTEM_ABILITY,
+        payload={},
+    )
+    if res is None:
+        raise InvalidMessage("%s get ability failed", device_info.dev_name)
 
-        abilities = res.get("payload", {}).get("ability", None)
-
-        if abilities is not None:
-            device = build_device_from_abilities(
-                device_info=device_info, device_abilities=abilities
-            )
-            await device.async_handle_update()
-            return device
-        return None
-    except DeviceTimeoutError:
-        return None
+    abilities = res.get("payload", {}).get("ability", {})
+    device = build_device_from_abilities(
+        device_info=device_info, device_abilities=abilities
+    )
+    await device.async_handle_update()
+    return device
 
 
 _dynamic_types: dict[str, type] = {}

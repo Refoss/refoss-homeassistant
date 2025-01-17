@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 from .refoss_ha.controller.device import BaseDevice
-from .refoss_ha.exceptions import DeviceTimeoutError
+from .refoss_ha.exceptions import DeviceTimeoutError, RefossError
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -38,3 +38,5 @@ class RefossDataUpdateCoordinator(DataUpdateCoordinator[None]):
 
             if self._error_count >= MAX_ERRORS:
                 self.last_update_success = False
+        except RefossError as err:
+            _LOGGER.debug("fetch data failed ", err)

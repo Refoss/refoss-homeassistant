@@ -1,7 +1,6 @@
 """util."""
 import logging
 import re
-import uuid
 
 LOGGER = logging.getLogger(__name__)
 

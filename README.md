@@ -1,15 +1,18 @@
 # Refoss LAN
-This homeassistant integration allows you to control your Refoss devices in a very flexible way.
+
+- Revision Date: January 17, 2025
+- Revised Version: v1.0.2
+- Revision Focus: Support for filling in device IP for integration
+- Integration Type: Changed from hub to device
+- Version Description:
+  - v1.0.1: If the user does not know the device IP, the device will be automatically discovered after launching the Refoss Lan integration, but the device and Home Assistant need to be on the same network.
+  - v1.0.2: Support for filling in device IP for integration.
+
 
 ## Installation
-### HACS (recommended)
-   Make sure the [HACS integration](https://hacs.xyz/) is properly installed for your instance of home assistant.
 
-#### Home Assistant Community Store in HACS
-In your HA frontend go to HACS -> Integrations, search for 'Refoss LAN' and hit 'Install' You'll have to restart HA to let it recognize the new integration.
-If not found in Home Assistant Community Store, you can also install it used [Custom Repositories](https://hacs.xyz/docs/faq/custom_repositories)
-
-#### Custom Repositories in HACS
+### Custom Repositories in HACS (recommended)
+- Make sure the [HACS integration](https://hacs.xyz/) is properly installed for your instance of home assistant.
 - Reference [Custom Repositories](https://hacs.xyz/docs/faq/custom_repositories),In the HACS UI go to "Integrations", click on "+" in the lower right corner".
 - Paste https://github.com/Refoss/refoss-homeassistant into the field that says "Add custom repository URL", select "Integration" from "Category" dropdown and click "Add".
 - You should now see a card with the Refoss LAN integration in the HACS -> "Integrations" section. Click "Install".
@@ -30,8 +33,9 @@ If not found in Home Assistant Community Store, you can also install it used [Cu
 
 ## Supported device models
 
-| Model | Version            |             
-| ----------- |--------------------|
+| Model                               | Version            |             
+|-------------------------------------|--------------------|
 | `Refoss Smart Wi-Fi Switch, R10`    | `all`              |
 | `Refoss Smart Energy Monitor, EM06` | `v2.3.8 and above` |
+| `Refoss Smart Energy Monitor, EM16` | `v3.1.7 and above` |
 
