@@ -41,7 +41,7 @@ _dynamic_types: dict[str, type] = {}
 
 @lru_cache(maxsize=512)
 def _lookup_cached_type(
-    device_type: str, hardware_version: str, firmware_version: str
+        device_type: str, hardware_version: str, firmware_version: str
 ) -> Optional[type]:
     """Lookup."""
     lookup_string = _caclulate_device_type_name(
@@ -51,7 +51,7 @@ def _lookup_cached_type(
 
 
 def build_device_from_abilities(
-    device_info: DeviceInfo, device_abilities: dict
+        device_info: DeviceInfo, device_abilities: dict
 ) -> BaseDevice:
     """build_device_from_abilities."""
     cached_type = _lookup_cached_type(
@@ -83,14 +83,14 @@ def build_device_from_abilities(
 
 
 def _caclulate_device_type_name(
-    device_type: str, hardware_version: str, firmware_version: str
+        device_type: str, hardware_version: str, firmware_version: str
 ) -> str:
     """_caclulate_device_type_name."""
     return f"{device_type}:{hardware_version}:{firmware_version}"
 
 
 def _build_cached_type(
-    type_string: str, device_abilities: dict, base_class: type
+        type_string: str, device_abilities: dict, base_class: type
 ) -> type:
     """_build_cached_type."""
     mixin_classes = set()

@@ -165,9 +165,9 @@ SENSORS: dict[str, tuple[RefossSensorEntityDescription, ...]] = {
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Refoss device from a config entry."""
     coordinator: RefossDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
@@ -201,10 +201,10 @@ class RefossSensor(RefossEntity, SensorEntity):
     entity_description: RefossSensorEntityDescription
 
     def __init__(
-        self,
-        coordinator: RefossDataUpdateCoordinator,
-        channel: int,
-        description: RefossSensorEntityDescription,
+            self,
+            coordinator: RefossDataUpdateCoordinator,
+            channel: int,
+            description: RefossSensorEntityDescription,
     ) -> None:
         """Init Refoss sensor."""
         super().__init__(coordinator, channel)

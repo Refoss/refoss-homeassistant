@@ -16,13 +16,11 @@ from .refoss_ha.discovery import Discovery
 from .refoss_ha.exceptions import SocketError
 from .const import _LOGGER
 
-
 CONFIG_SCHEMA: Final = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
     }
 )
-
 
 from .const import DISCOVERY_TIMEOUT, DOMAIN
 
@@ -36,7 +34,7 @@ class RefossConfigFlow(ConfigFlow, domain=DOMAIN):
     host: str = ""
 
     async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
+            self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
@@ -59,7 +57,7 @@ class RefossConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_reconfigure(
-        self, user_input: dict[str, Any] | None = None
+            self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle a reconfiguration flow initialized by the user."""
         errors = {}

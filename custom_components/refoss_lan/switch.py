@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -17,9 +16,9 @@ from .const import DOMAIN
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Refoss device from a config entry."""
     coordinator: RefossDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
@@ -44,9 +43,9 @@ class RefossSwitch(RefossEntity, SwitchEntity):
     """Refoss Switch Device."""
 
     def __init__(
-        self,
-        coordinator: RefossDataUpdateCoordinator,
-        channel: int,
+            self,
+            coordinator: RefossDataUpdateCoordinator,
+            channel: int,
     ) -> None:
         """Init Refoss switch."""
         super().__init__(coordinator, channel)

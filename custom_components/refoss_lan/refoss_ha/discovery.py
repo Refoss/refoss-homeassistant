@@ -5,7 +5,6 @@ import logging
 import socket
 from .exceptions import SocketError
 
-
 _LOGGER = logging.getLogger(__name__)
 
 

@@ -40,6 +40,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     except InvalidMessage as err:
         raise ConfigEntryNotReady(f"Device data error {data[CONF_HOST]}") from err
     except RefossError as err:
+        _LOGGER.debug(
+            f"Device {data['devName']} network connection failed, please check the network and try again"
+        )
         raise ConfigEntryNotReady(repr(err)) from err
 
     coordinator = RefossDataUpdateCoordinator(hass, base_device)
