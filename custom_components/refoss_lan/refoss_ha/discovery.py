@@ -11,7 +11,6 @@ _LOGGER = logging.getLogger(__name__)
 def socket_init() -> socket.socket:
     """socket_init."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     sock.bind(("", 9989))
     return sock
 
@@ -52,6 +51,7 @@ class Discovery(asyncio.DatagramProtocol):
         data_dict = json.loads(json_str)
         _LOGGER.debug(f"Discovered device {data_dict}")
         if "channels" in data_dict and "uuid" in data_dict:
+            _LOGGER.info(f"Discovered device {data_dict['devName']}")
             uuid = data_dict["uuid"]
             if self.device_info and (uuid in self.device_info):
                 return

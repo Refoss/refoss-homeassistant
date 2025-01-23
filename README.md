@@ -13,7 +13,11 @@
     - If the device IP is changed, you can correct it through reconfigure, like this:
     ![reconfigure](img/img3.png)
     ![reconfigure](img/img4.png)
-
+## Tip
+  v1.0.2: Cross network communication instructions
+  - The device was discovered to be unicast via UDP, and Home Assistant will occupy port 9989.
+  - When the device and Home Assistant  cross networks, you need to configure VPN，however the device replies UDP packets to the proxy network.
+    So need to configure forwarding rules for port 9989 in the proxy network to  Home Assistant.
 
 ## Installation
 
