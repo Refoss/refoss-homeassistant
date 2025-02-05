@@ -23,7 +23,7 @@
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
       "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]",
-      "another_device": "Re-configuration was unsuccessful, the IP address/hostname of another Refoss device was used.",
+      "another_device": "Re-configuration was unsuccessful, the IP address/hostname of another Refoss device was used."
     },
     "error": {
       "no_devices_found": "No devices found on the network, Please check if the IP address is correct",
