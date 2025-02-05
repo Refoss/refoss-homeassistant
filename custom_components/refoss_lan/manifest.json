@@ -3,8 +3,8 @@
   "name": "Refoss LAN",
   "codeowners": ["@ashionky"],
   "config_flow": true,
-  "integration_type": "device",
   "documentation": "https://github.com/Refoss/refoss-homeassistant/blob/main/README.md",
+  "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/Refoss/refoss-homeassistant/issues",
   "version": "1.0.2"
