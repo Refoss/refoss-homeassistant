@@ -16,6 +16,7 @@ class RefossEntity(CoordinatorEntity[RefossDataUpdateCoordinator]):
         """Initialize the entity."""
         super().__init__(coordinator)
 
+        self.coordinator = coordinator
         mac = coordinator.device.mac
         self.channel = channel
         self._attr_unique_id = f"{mac}_{channel}"

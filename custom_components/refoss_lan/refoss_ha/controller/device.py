@@ -1,4 +1,5 @@
 """BaseDevice."""
+
 from __future__ import annotations
 
 import json
@@ -29,12 +30,12 @@ class BaseDevice:
         """update device state."""
 
     async def async_execute_cmd(
-            self,
-            device_uuid: str,
-            method: str,
-            namespace: Union[Namespace, str],
-            payload: dict,
-            timeout: int = 5,
+        self,
+        device_uuid: str,
+        method: str,
+        namespace: Union[Namespace, str],
+        payload: dict,
+        timeout: int = 5,
     ):
         """Execute command."""
         res = await self.device_info.async_execute_cmd(

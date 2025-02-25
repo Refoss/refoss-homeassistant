@@ -1,24 +1,5 @@
 # Refoss LAN
 
-## Change record
-- Date: January 17, 2025
-- Latest version: v1.0.2
-- Important note: Support for filling in device IP for integration
-- Integration Type: Changed from hub to device
-- Releases Description:
-  - v1.0.1: If the user does not know the device IP, the device will be automatically discovered after launching the Refoss Lan integration, but the device and Home Assistant need to be on the same network.
-  - v1.0.2: Support for filling in device IP for integration.
-  ![](img/img1.png)
-  ![](img/img2.png)
-    - If the device IP is changed, you can correct it through reconfigure, like this:
-    ![reconfigure](img/img3.png)
-    ![reconfigure](img/img4.png)
-## Tip
-  v1.0.2: Cross network communication instructions
-  - The device was discovered to be unicast via UDP, and Home Assistant will occupy port 9989.
-  - When the device and Home Assistant  cross networks, you need to configure VPN，however the device replies UDP packets to the proxy network.
-    So need to configure forwarding rules for port 9989 in the proxy network to  Home Assistant.
-
 ## Installation
 
 ### Custom Repositories in HACS (recommended)
@@ -30,11 +11,11 @@
 - Restart Home Assistant.
 
 ### Manual installation
-- Using the tool of choice open the directory (folder) for your HA configuration (where you find configuration.yaml).
-- If you do not have a custom_components directory (folder) there, you need to create it.
-- In the custom_components directory (folder) create a new folder called refoss_lan.
-- Download all the files from the custom_components/refoss_lan/ directory (folder) in this repository.
-- Place the files you downloaded in the new directory (folder) you created.
+- Using the tool of choice open the directory for your HA configuration (where you find configuration.yaml).
+- If you do not have a custom_components directory there, you need to create it.
+- In the custom_components directory create a new folder called refoss_lan.
+- In releases, download the version you need.
+- Place refoss_lan directory you downloaded in the new directory you created.
 - Restart Home Assistant.
 
 ## Configuration

@@ -1,4 +1,5 @@
 """ElectricityXMix."""
+
 import logging
 import traceback
 
