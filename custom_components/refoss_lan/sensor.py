@@ -18,13 +18,13 @@ from homeassistant.const import (
     UnitOfPower,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
-from .const import CHANNEL_DISPLAY_NAME, DOMAIN, SENSOR_EM
+from .const import CHANNEL_DISPLAY_NAME, SENSOR_EM
 from .entity import RefossEntity
 from .refoss_ha.controller.electricity import ElectricityXMix
-from .coordinator import RefossDataUpdateCoordinator
+from .coordinator import RefossDataUpdateCoordinator, RefossConfigEntry
 
 
 @dataclass(frozen=True)
@@ -105,13 +105,12 @@ SENSORS: dict[str, tuple[RefossSensorEntityDescription, ...]] = {
 
 
 async def async_setup_entry(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-        async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant,
+    config_entry: RefossConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the Refoss device from a config entry."""
-    coordinator: RefossDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
-
+    coordinator = config_entry.runtime_data
     device = coordinator.device
     if not isinstance(device, ElectricityXMix):
         return
@@ -141,10 +140,10 @@ class RefossSensor(RefossEntity, SensorEntity):
     entity_description: RefossSensorEntityDescription
 
     def __init__(
-            self,
-            coordinator: RefossDataUpdateCoordinator,
-            channel: int,
-            description: RefossSensorEntityDescription,
+        self,
+        coordinator: RefossDataUpdateCoordinator,
+        channel: int,
+        description: RefossSensorEntityDescription,
     ) -> None:
         """Init Refoss sensor."""
         super().__init__(coordinator, channel)

@@ -1,9 +1,9 @@
 """The refoss_lan integration."""
+
 from __future__ import annotations
 
 from typing import Final
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform, CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -14,7 +14,7 @@ from .refoss_ha.exceptions import DeviceTimeoutError, InvalidMessage, RefossErro
 
 from .refoss_ha.controller.device import BaseDevice
 from .const import DOMAIN, _LOGGER
-from .coordinator import RefossDataUpdateCoordinator
+from .coordinator import RefossDataUpdateCoordinator, RefossConfigEntry
 
 PLATFORMS: Final = [
     Platform.SWITCH,
@@ -22,9 +22,10 @@ PLATFORMS: Final = [
 ]
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: RefossConfigEntry
+) -> bool:
     """Set up refoss_lan from a config entry."""
-    hass.data.setdefault(DOMAIN, {})
     data = config_entry.data
     if not data.get(CONF_HOST) or not data.get("device"):
         _LOGGER.debug(
@@ -45,14 +46,17 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         )
         raise ConfigEntryNotReady(repr(err)) from err
 
-    coordinator = RefossDataUpdateCoordinator(hass, base_device)
-    hass.data[DOMAIN][config_entry.entry_id] = coordinator
+    coordinator = RefossDataUpdateCoordinator(hass, config_entry, base_device)
+    await coordinator.async_config_entry_first_refresh()
+    config_entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, config_entry: RefossConfigEntry
+) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(
         config_entry, PLATFORMS
