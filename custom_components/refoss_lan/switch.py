@@ -6,7 +6,7 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .entity import RefossEntity
 from .refoss_ha.controller.toggle import ToggleXMix
@@ -16,7 +16,7 @@ from .coordinator import RefossDataUpdateCoordinator, RefossConfigEntry
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: RefossConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Refoss device from a config entry."""
     coordinator = config_entry.runtime_data
