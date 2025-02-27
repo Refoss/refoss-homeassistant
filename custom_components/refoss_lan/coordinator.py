@@ -45,11 +45,11 @@ class RefossDataUpdateCoordinator(DataUpdateCoordinator[None]):
             self._update_error_count()
             if self._error_count >= MAX_ERRORS:
                 self._update_success(False)
-            _LOGGER.warning("Device update timed out")
+            _LOGGER.debug("Device update timed out")
             raise UpdateFailed("Timeout") from e
         except RefossError as e:
-            _LOGGER.error(f"Device connection error: {e!r}")
-            raise UpdateFailed("Device connect error") from e
+            _LOGGER.debug(f"Device connection error: {e!r}")
+            raise UpdateFailed("Device connect fail") from e
 
     def _update_success(self, success: bool) -> None:
         """Update the success state."""
