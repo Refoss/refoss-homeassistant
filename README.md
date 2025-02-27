@@ -13,9 +13,8 @@
 ### Manual installation
 - Using the tool of choice open the directory for your HA configuration (where you find configuration.yaml).
 - If you do not have a custom_components directory there, you need to create it.
-- In the custom_components directory create a new folder called refoss_lan.
 - In releases(https://github.com/Refoss/refoss-homeassistant/releases), download the version you need.
-- Place refoss_lan directory you downloaded in the new directory you created.
+- In the downloaded file, locate the refoss_lan directory and copy it to the custom_components directory.
 - Restart Home Assistant.
 
 ## Configuration
