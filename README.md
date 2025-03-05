@@ -1,4 +1,5 @@
 # Refoss LAN
+- Home Assistant version: 2025.2.5 or above
 
 ## Installation
 
