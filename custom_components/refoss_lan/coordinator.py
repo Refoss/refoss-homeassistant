@@ -25,7 +25,7 @@ class RefossDataUpdateCoordinator(DataUpdateCoordinator[None]):
         self, hass: HomeAssistant, config_entry: ConfigEntry, device: BaseDevice
     ) -> None:
         """Initialize the data update coordinator."""
-        update_interval = config_entry.data[UPDATE_INTERVAL]
+        update_interval = config_entry.data.get(UPDATE_INTERVAL, 10)
         super().__init__(
             hass,
             _LOGGER,
