@@ -16,7 +16,7 @@ Click on Install. When the installation completes, **you must restart homeassist
 As soon as HomeAssistant is restarted, you can proceed with __component setup__.
 
 ### Option B: Classic installation (custom_component)
-1. Download the latest zip release archive from [here](https://github.com/Refoss/refoss_lan/releases/latest)
+1. Download the latest zip release archive from [here](https://github.com/Refoss/refoss-homeassistant/releases/latest)
 1. Unzip/copy the refoss_lan directory within the `custom_components` directory of your homeassistant installation.
    The `custom_components` directory resides within your homeassistant configuration directory.
    Usually, the configuration directory is within your home (`~/.homeassistant/`).
