@@ -51,3 +51,6 @@ As soon as HomeAssistant is restarted, you can proceed with __component setup__.
 | `Refoss Smart Energy Monitor, EM06` | `v2.3.8 and above` |
 | `Refoss Smart Energy Monitor, EM16` | `v3.1.7 and above` |
 
+## Tips
+- When Home Assistant runs in a virtual machine, Please set the virtual machine's network to bridge mode.
+- Refoss LAN and Refoss(core integration) cannot be used simultaneously. If you plan to use Refoss LAN, please remove Refoss first.
