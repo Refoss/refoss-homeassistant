@@ -86,6 +86,8 @@ class RefossConfigFlow(ConfigFlow, domain=DOMAIN):
                                 "device": device,
                             },
                         )
+                else:
+                    _LOGGER.debug("Device at %s has no MAC, firmware not fully supported", host)
                 errors["base"] = "firmware_not_fully_supported"
 
         schema = vol.Schema(
@@ -114,8 +116,8 @@ async def start_scan_device(host: str) -> dict | None:
             device = await discovery_server.broadcast_msg(
                 ip=host, wait_for=DISCOVERY_TIMEOUT
             )
-        except (SocketError, OSError):
-            _LOGGER.debug("Failed socket scan on %s", host)
+        except (SocketError, OSError) as err:
+            _LOGGER.debug("Failed socket scan on %s: %s", host, err)
         finally:
             discovery_server.close_discovery()
     return device

@@ -49,4 +49,11 @@ class ElectricityXMix(BaseDevice):
                 for state in payload:
                     channel = state.get("channel", 0)
                     self.electricity_status[channel] = state
+            else:
+                _LOGGER.debug(
+                    "ElectricityXMix unexpected payload type for %s: %s",
+                    self.dev_name, type(payload).__name__,
+                )
+        else:
+            _LOGGER.debug("ElectricityXMix update got None response for %s", self.dev_name)
         await super().async_handle_update()

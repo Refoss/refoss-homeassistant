@@ -40,8 +40,8 @@ class RefossDataUpdateCoordinator(DataUpdateCoordinator[None]):
         try:
             await self.device.async_handle_update()
         except DeviceTimeoutError as e:
-            _LOGGER.debug("Device update timed out")
+            _LOGGER.debug("Device update timed out: %s", self.device.dev_name)
             raise UpdateFailed("Timeout") from e
         except RefossError as e:
-            _LOGGER.debug("Device connection error: %s", e)
+            _LOGGER.debug("Device connection error for %s: %s", self.device.dev_name, e)
             raise UpdateFailed("Device connect fail") from e

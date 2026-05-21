@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 from .controller.device import BaseDevice
@@ -10,6 +11,8 @@ from .controller.electricity import ElectricityXMix
 from .enums import Namespace
 from .device import DeviceInfo
 from .exceptions import InvalidMessage
+
+_LOGGER = logging.getLogger(__name__)
 
 _ABILITY_MATRIX = {
     Namespace.CONTROL_TOGGLEX.value: ToggleXMix,
@@ -26,9 +29,11 @@ async def async_build_base_device(device_info: DeviceInfo) -> BaseDevice:
         payload={},
     )
     if res is None:
+        _LOGGER.debug("Get ability failed for %s: response is None", device_info.dev_name)
         raise InvalidMessage(f"{device_info.dev_name} get ability failed")
 
     abilities = res.get("payload", {}).get("ability", {})
+    _LOGGER.debug("Device %s abilities: %s", device_info.dev_name, list(abilities.keys()))
     device = build_device_from_abilities(
         device_info=device_info, device_abilities=abilities
     )

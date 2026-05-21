@@ -50,6 +50,8 @@ class ToggleXMix(BaseDevice):
                 channel = payload.get("channel", 0)
                 switch_state = payload.get("onoff", 0) == 1
                 self.togglex_status[channel] = switch_state
+        else:
+            _LOGGER.debug("ToggleXMix update got None response for %s", self.dev_name)
         await super().async_handle_update()
 
     async def async_turn_off(self, channel=0) -> None:
@@ -63,6 +65,8 @@ class ToggleXMix(BaseDevice):
         )
         if res is not None:
             self.togglex_status[channel] = False
+        else:
+            _LOGGER.debug("ToggleXMix turn_off got None response: device=%s, channel=%d", self.dev_name, channel)
 
     async def async_turn_on(self, channel=0) -> None:
         """Turn on."""
@@ -75,6 +79,8 @@ class ToggleXMix(BaseDevice):
         )
         if res is not None:
             self.togglex_status[channel] = True
+        else:
+            _LOGGER.debug("ToggleXMix turn_on got None response: device=%s, channel=%d", self.dev_name, channel)
 
     async def async_toggle(self, channel=0) -> None:
         """Toggle."""

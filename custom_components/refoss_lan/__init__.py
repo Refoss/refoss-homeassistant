@@ -40,13 +40,14 @@ async def async_setup_entry(
         device.set_session(async_get_clientsession(hass))
         base_device: BaseDevice = await async_build_base_device(device_info=device)
     except DeviceTimeoutError as err:
+        _LOGGER.debug("Device timeout during setup for %s: %s", data[CONF_HOST], err)
         raise ConfigEntryNotReady(f"Timed out connecting to {data[CONF_HOST]}") from err
     except InvalidMessage as err:
+        _LOGGER.debug("Invalid message from device %s: %s", data[CONF_HOST], err)
         raise ConfigEntryNotReady(f"Device data error {data[CONF_HOST]}") from err
     except RefossError as err:
         _LOGGER.debug(
-            "Device %s network connection failed, please check the network and try again",
-            config_entry.title,
+            "Device %s network connection failed: %s", config_entry.title, err,
         )
         raise ConfigEntryNotReady(repr(err)) from err
 

@@ -8,6 +8,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .const import _LOGGER
 from .entity import RefossEntity
 from .refoss_ha.controller.toggle import ToggleXMix
 from .coordinator import RefossDataUpdateCoordinator, RefossConfigEntry
@@ -23,6 +24,7 @@ async def async_setup_entry(
     device = coordinator.device
 
     if not isinstance(device, ToggleXMix):
+        _LOGGER.debug("Device %s is not ToggleXMix, skipping switch setup", device.dev_name)
         return
 
     def init_device(device: ToggleXMix):

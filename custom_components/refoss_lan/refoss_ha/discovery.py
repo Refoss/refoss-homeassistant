@@ -45,16 +45,21 @@ class Discovery(asyncio.DatagramProtocol):
         try:
             self.sock = socket_init(self._port)
         except OSError as err:
+            _LOGGER.debug("Failed to initialize socket on port %s: %s", self._port, err)
             raise SocketError(err) from err
         self._loop = asyncio.get_running_loop()
         await self._loop.create_datagram_endpoint(lambda: self, sock=self.sock)
 
     async def broadcast_msg(self, ip: str = "", wait_for: int = 0) -> dict | None:
         """Broadcast and wait for device response."""
+        # 重置状态，确保同一实例多次调用时行为正确
+        self.device_info = None
+        self._response_event.clear()
         address = (ip, 9988)
         msg = json.dumps(
             {"id": "48cbd88f969eb3c486085cfe7b5eb1e4", "devName": "*"}
         ).encode("utf-8")
+        _LOGGER.debug("Broadcasting discovery to %s:9988, wait_for=%s", ip, wait_for)
         try:
             self.transport.sendto(msg, address)
             if wait_for:
@@ -63,8 +68,9 @@ class Discovery(asyncio.DatagramProtocol):
                         self._response_event.wait(), timeout=wait_for
                     )
                 except asyncio.TimeoutError:
-                    pass
+                    _LOGGER.debug("Discovery broadcast timed out after %ss for %s", wait_for, ip)
         except Exception as err:
+            _LOGGER.debug("Discovery broadcast error for %s: %s", ip, err)
             raise SocketError(err) from err
         return self.device_info
 
@@ -73,10 +79,9 @@ class Discovery(asyncio.DatagramProtocol):
         try:
             json_str = data.decode("utf-8")
             data_dict = json.loads(json_str)
-        except (UnicodeDecodeError, json.JSONDecodeError):
-            _LOGGER.debug("Received invalid datagram from %s", addr)
+        except (UnicodeDecodeError, json.JSONDecodeError) as err:
+            _LOGGER.debug("Received invalid datagram from %s: %s", addr, err)
             return
-        _LOGGER.debug("Discovered device %s", data_dict)
         if "channels" in data_dict and "uuid" in data_dict:
             _LOGGER.info("Discovered device %s", data_dict.get("devName"))
             uuid = data_dict["uuid"]
@@ -84,6 +89,8 @@ class Discovery(asyncio.DatagramProtocol):
                 return
             self.device_info = data_dict
             self._response_event.set()
+        else:
+            _LOGGER.debug("Datagram from %s missing 'channels' or 'uuid', keys: %s", addr, list(data_dict.keys()))
 
     def close_discovery(self) -> None:
         """Close discovery resources."""

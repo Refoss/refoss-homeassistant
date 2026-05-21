@@ -117,6 +117,19 @@ class DeviceInfo(BaseDictPayload):
                         ack_method = header.get("method")
                         if messageId == message_id and ack_method == method + "ACK":
                             return data
+                        else:
+                            namespace_val = (
+                                namespace.value if isinstance(namespace, Namespace) else namespace
+                            )
+                            LOGGER.debug(
+                                "Response mismatch for %s: expected messageId=%s ack=%s, got messageId=%s ack=%s",
+                                namespace_val, message_id, method + "ACK", messageId, ack_method,
+                            )
+                    else:
+                        namespace_val = (
+                            namespace.value if isinstance(namespace, Namespace) else namespace
+                        )
+                        LOGGER.debug("Response data is None for %s, ip=%s", namespace_val, self.inner_ip)
                     return None
             finally:
                 if owns_session:
