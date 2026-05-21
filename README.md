@@ -48,7 +48,7 @@ Local LAN integration for Refoss smart devices — no cloud dependency. Provides
 ## Configuration
 
 1. In Home Assistant, go to **Settings → Devices & Services**, click **Add Integration**, and search for **"Refoss LAN"**.
-2. Enter the **device IP address** and **update interval** (in seconds, minimum 1).
+2. Enter the **device IP address** and **update interval** (in seconds, recommended 5 or above).
 3. The integration will discover the device on your local network and create the corresponding entities.
 
 [![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=refoss_lan)
@@ -70,6 +70,7 @@ Local LAN integration for Refoss smart devices — no cloud dependency. Provides
 
 ## Tips
 
+- If adding a new device fails and the log shows **"Address in use"**, please try restarting Home Assistant.
 - If your device is one of the following models, please use [Refoss RPC](https://github.com/Refoss/refoss_rpc) instead:
 
   | Model | Firmware |
