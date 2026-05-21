@@ -24,7 +24,11 @@ class BaseDevice:
         self.port = device_info.port
         self.mac = device_info.mac
         self.sub_type = device_info.sub_type
-        self.channels = json.loads(device_info.channels)
+        channels = device_info.channels
+        if isinstance(channels, str):
+            self.channels = json.loads(channels)
+        else:
+            self.channels = list(channels)
 
     async def async_handle_update(self):
         """update device state."""

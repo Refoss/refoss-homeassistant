@@ -13,15 +13,23 @@ import time
 LOGGER = logging.getLogger(__name__)
 from typing import Union
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientTimeout
 
 from .enums import Namespace
-from .util import BaseDictPayload
+from .util import BaseDictPayload, _underscore_to_camel
 from .exceptions import DeviceTimeoutError, RefossError
 
 
 class DeviceInfo(BaseDictPayload):
     """Base class."""
+
+    # Maps internal attribute names to the original JSON keys.
+    # This ensures to_dict() produces output that from_dict() can consume.
+    _JSON_KEY_MAP: dict[str, str] = {
+        "fmware_version": "devSoftWare",
+        "hdware_version": "devHardWare",
+        "inner_ip": "ip",
+    }
 
     def __init__(
         self,
@@ -34,7 +42,7 @@ class DeviceInfo(BaseDictPayload):
         port: str,
         mac: str,
         sub_type: str,
-        channels: list[int],
+        channels: str | list[int],
         *args,
         **kwargs,
     ) -> None:
@@ -51,6 +59,24 @@ class DeviceInfo(BaseDictPayload):
         self.mac = mac
         self.sub_type = sub_type
         self.channels = channels
+        self._session: ClientSession | None = None
+
+    def set_session(self, session: ClientSession) -> None:
+        """Set the aiohttp session."""
+        self._session = session
+
+    def to_dict(self) -> dict:
+        """Convert to dict with correct JSON key names."""
+        res = {}
+        for k, v in vars(self).items():
+            if k.startswith("_"):
+                continue
+            if k in self._JSON_KEY_MAP:
+                new_key = self._JSON_KEY_MAP[k]
+            else:
+                new_key = _underscore_to_camel(k)
+            res[new_key] = v
+        return res
 
     def __str__(self) -> str:
         """Returns a string."""
@@ -66,7 +92,7 @@ class DeviceInfo(BaseDictPayload):
         timeout: int = 20,
     ):
         """async_execute_cmd."""
-        message, message_id = self._build_mqtt_message(
+        message_dict, message_id = self._build_mqtt_message(
             method, namespace, payload, device_uuid
         )
 
@@ -76,27 +102,59 @@ class DeviceInfo(BaseDictPayload):
             path = f"http://{self.inner_ip}/public"
 
         try:
-            async with ClientSession() as session, session.post(
-                path,
-                json=json.loads(message.decode()),
-                timeout=timeout,
-            ) as response:
-                data = await response.json()
-                if data is not None:
-                    header = data.get("header", {})
-                    messageId = header.get("messageId")
-                    ack_method = header.get("method")
-                    if messageId == message_id and ack_method == method + "ACK":
-                        return data
-                return None
+            session = self._session or ClientSession()
+            owns_session = self._session is None
+            try:
+                async with session.post(
+                    path,
+                    json=message_dict,
+                    timeout=ClientTimeout(total=timeout),
+                ) as response:
+                    data = await response.json()
+                    if data is not None:
+                        header = data.get("header", {})
+                        messageId = header.get("messageId")
+                        ack_method = header.get("method")
+                        if messageId == message_id and ack_method == method + "ACK":
+                            return data
+                        else:
+                            namespace_val = (
+                                namespace.value if isinstance(namespace, Namespace) else namespace
+                            )
+                            LOGGER.debug(
+                                "Response mismatch for %s: expected messageId=%s ack=%s, got messageId=%s ack=%s",
+                                namespace_val, message_id, method + "ACK", messageId, ack_method,
+                            )
+                    else:
+                        namespace_val = (
+                            namespace.value if isinstance(namespace, Namespace) else namespace
+                        )
+                        LOGGER.debug("Response data is None for %s, ip=%s", namespace_val, self.inner_ip)
+                    return None
+            finally:
+                if owns_session:
+                    await session.close()
         except asyncio.TimeoutError:
+            namespace_val = (
+                namespace.value if isinstance(namespace, Namespace) else namespace
+            )
             LOGGER.debug(
-                f"Http timeoutError,ip:{self.inner_ip}, device_type:{self.device_type}, namespace:{namespace.value}"
+                "Http timeout, ip: %s, device_type: %s, namespace: %s",
+                self.inner_ip,
+                self.device_type,
+                namespace_val,
             )
             raise DeviceTimeoutError
         except Exception as e:
+            namespace_val = (
+                namespace.value if isinstance(namespace, Namespace) else namespace
+            )
             LOGGER.debug(
-                f"Http fail: {e}, ip:{self.inner_ip}, device_type:{self.device_type},namespace:{namespace.value}"
+                "Http fail: %s, ip: %s, device_type: %s, namespace: %s",
+                e,
+                self.inner_ip,
+                self.device_type,
+                namespace_val,
             )
             raise RefossError("Device connection failed") from e
 
@@ -106,7 +164,8 @@ class DeviceInfo(BaseDictPayload):
         namespace: Union[Namespace, str],
         payload: dict,
         destination_device_uuid: str,
-    ):
+    ) -> tuple[dict, str]:
+        """Build message dict and return (data_dict, message_id)."""
         # Generate a random 16 byte string
         randomstring = "".join(
             random.SystemRandom().choice(string.ascii_uppercase + string.digits)
@@ -146,5 +205,4 @@ class DeviceInfo(BaseDictPayload):
             "payload": payload,
         }
 
-        strdata = json.dumps(data)
-        return strdata.encode("utf-8"), messageId
+        return data, messageId

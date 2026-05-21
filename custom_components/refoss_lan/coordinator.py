@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import _LOGGER, DOMAIN, MAX_ERRORS, UPDATE_INTERVAL
+from .const import _LOGGER, DOMAIN, UPDATE_INTERVAL
 
 type RefossConfigEntry = ConfigEntry[RefossDataUpdateCoordinator]
 
@@ -34,28 +34,14 @@ class RefossDataUpdateCoordinator(DataUpdateCoordinator[None]):
             update_interval=timedelta(seconds=update_interval),
         )
         self.device = device
-        self._error_count = 0
 
     async def _async_update_data(self) -> None:
         """Update the state of the device."""
         try:
             await self.device.async_handle_update()
-            self._update_success(True)
         except DeviceTimeoutError as e:
-            self._update_error_count()
-            if self._error_count >= MAX_ERRORS:
-                self._update_success(False)
-            _LOGGER.debug("Device update timed out")
+            _LOGGER.debug("Device update timed out: %s", self.device.dev_name)
             raise UpdateFailed("Timeout") from e
         except RefossError as e:
-            _LOGGER.debug(f"Device connection error: {e!r}")
+            _LOGGER.debug("Device connection error for %s: %s", self.device.dev_name, e)
             raise UpdateFailed("Device connect fail") from e
-
-    def _update_success(self, success: bool) -> None:
-        """Update the success state."""
-        self.last_update_success = success
-        self._error_count = 0 if success else self._error_count
-
-    def _update_error_count(self) -> None:
-        """Increment the error count."""
-        self._error_count += 1
