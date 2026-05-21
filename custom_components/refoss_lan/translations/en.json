@@ -31,7 +31,7 @@
                     "host": "The hostname or IP address of the Refoss device to connect to.",
                     "update_interval": "Time interval for updating data."
                 },
-                "description": "Before setup, devices must be connected to the network.\n\nThis path can be configured for refoss product models including R10,EM06,EM16, etc. \n\nFor more information, please refer to 'Help'."
+                "description": "Before setup, devices must be connected to the network.\n\nThis path can be configured for refoss product models including R10,EM06,EM16, etc."
             }
         }
     },
