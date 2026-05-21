@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
 from typing import Optional
 
 from .controller.device import BaseDevice
@@ -18,7 +17,7 @@ _ABILITY_MATRIX = {
 }
 
 
-async def async_build_base_device(device_info: DeviceInfo) -> Optional[BaseDevice]:
+async def async_build_base_device(device_info: DeviceInfo) -> BaseDevice:
     """Build base device."""
     res = await device_info.async_execute_cmd(
         device_uuid=device_info.uuid,
@@ -27,7 +26,7 @@ async def async_build_base_device(device_info: DeviceInfo) -> Optional[BaseDevic
         payload={},
     )
     if res is None:
-        raise InvalidMessage("%s get ability failed", device_info.dev_name)
+        raise InvalidMessage(f"{device_info.dev_name} get ability failed")
 
     abilities = res.get("payload", {}).get("ability", {})
     device = build_device_from_abilities(
@@ -40,14 +39,13 @@ async def async_build_base_device(device_info: DeviceInfo) -> Optional[BaseDevic
 _dynamic_types: dict[str, type] = {}
 
 
-@lru_cache(maxsize=512)
 def _lookup_cached_type(
     device_type: str, hardware_version: str, firmware_version: str
 ) -> Optional[type]:
     """Lookup."""
     lookup_string = _caclulate_device_type_name(
         device_type, hardware_version, firmware_version
-    ).strip(":")
+    )
     return _dynamic_types.get(lookup_string)
 
 

@@ -57,14 +57,14 @@ class RefossSwitch(RefossEntity, SwitchEntity):
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
         await self.coordinator.device.async_turn_on(self.channel)
-        self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
         await self.coordinator.device.async_turn_off(self.channel)
-        self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()
 
     async def async_toggle(self, **kwargs: Any) -> None:
         """Toggle the switch."""
         await self.coordinator.device.async_toggle(channel=self.channel)
-        self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()

@@ -1,12 +1,10 @@
 """ToggleXMix."""
 
 import logging
-import traceback
 
 from ..enums import Namespace
 from ..device import DeviceInfo
 from .device import BaseDevice
-from ..exceptions import DeviceTimeoutError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,53 +34,47 @@ class ToggleXMix(BaseDevice):
 
         if res is not None:
             data = res.get("payload", {})
-            payload = data["togglex"]
+            payload = data.get("togglex")
             if payload is None:
                 _LOGGER.debug(
-                    f"{data} could not find 'togglex' attribute in push notification data"
+                    "Could not find 'togglex' attribute in response: %s", data
                 )
 
             elif isinstance(payload, list):
                 for c in payload:
-                    channel = c["channel"]
-                    switch_state = c["onoff"] == 1
+                    channel = c.get("channel", 0)
+                    switch_state = c.get("onoff", 0) == 1
                     self.togglex_status[channel] = switch_state
 
             elif isinstance(payload, dict):
-                channel = payload["channel"]
-                switch_state = payload["onoff"] == 1
+                channel = payload.get("channel", 0)
+                switch_state = payload.get("onoff", 0) == 1
                 self.togglex_status[channel] = switch_state
         await super().async_handle_update()
 
     async def async_turn_off(self, channel=0) -> None:
         """Turn off."""
         payload = {"togglex": {"onoff": 0, "channel": channel}}
-        try:
-            res = await self.async_execute_cmd(
-                device_uuid=self.uuid,
-                method="SET",
-                namespace=Namespace.CONTROL_TOGGLEX,
-                payload=payload,
-            )
-            if res is not None:
-                self.togglex_status[channel] = False
-        except DeviceTimeoutError:
-            pass
+        res = await self.async_execute_cmd(
+            device_uuid=self.uuid,
+            method="SET",
+            namespace=Namespace.CONTROL_TOGGLEX,
+            payload=payload,
+        )
+        if res is not None:
+            self.togglex_status[channel] = False
 
     async def async_turn_on(self, channel=0) -> None:
         """Turn on."""
         payload = {"togglex": {"onoff": 1, "channel": channel}}
-        try:
-            res = await self.async_execute_cmd(
-                device_uuid=self.uuid,
-                method="SET",
-                namespace=Namespace.CONTROL_TOGGLEX,
-                payload=payload,
-            )
-            if res is not None:
-                self.togglex_status[channel] = True
-        except DeviceTimeoutError:
-            pass
+        res = await self.async_execute_cmd(
+            device_uuid=self.uuid,
+            method="SET",
+            namespace=Namespace.CONTROL_TOGGLEX,
+            payload=payload,
+        )
+        if res is not None:
+            self.togglex_status[channel] = True
 
     async def async_toggle(self, channel=0) -> None:
         """Toggle."""

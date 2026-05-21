@@ -24,7 +24,7 @@ class RefossEntity(CoordinatorEntity[RefossDataUpdateCoordinator]):
             identifiers={(DOMAIN, mac)},
             connections={(CONNECTION_NETWORK_MAC, mac)},
             manufacturer="Refoss",
-            name=coordinator.device.device_type,
+            name=coordinator.device.dev_name,
             model=coordinator.device.device_type,
             sw_version=coordinator.device.fmware_version,
             hw_version=coordinator.device.hdware_version,

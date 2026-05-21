@@ -7,12 +7,11 @@ from logging import Logger, getLogger
 _LOGGER: Logger = getLogger(__package__)
 
 DISCOVERY_TIMEOUT = 8
+DISCOVERY_PORT = 9989
 UPDATE_INTERVAL = "update_interval"
 
 
 DOMAIN = "refoss_lan"
-
-MAX_ERRORS = 4
 
 # Energy monitoring
 SENSOR_EM = "em"

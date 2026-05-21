@@ -1,12 +1,10 @@
 """ElectricityXMix."""
 
 import logging
-import traceback
 
 from ..enums import Namespace
 from ..device import DeviceInfo
 from .device import BaseDevice
-from ..exceptions import DeviceTimeoutError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,14 +39,14 @@ class ElectricityXMix(BaseDevice):
         )
         if res is not None:
             data = res.get("payload", {})
-            payload = data["electricity"]
+            payload = data.get("electricity")
             if payload is None:
                 _LOGGER.debug(
-                    f"{data} could not find 'electricity' attribute in push notification data"
+                    "Could not find 'electricity' attribute in response: %s", data
                 )
 
             elif isinstance(payload, list):
                 for state in payload:
-                    channel = state["channel"]
+                    channel = state.get("channel", 0)
                     self.electricity_status[channel] = state
         await super().async_handle_update()

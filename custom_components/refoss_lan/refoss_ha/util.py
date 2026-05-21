@@ -36,6 +36,8 @@ class BaseDictPayload:
         """to_dict."""
         res = {}
         for k, v in vars(self).items():
+            if k.startswith("_"):
+                continue
             new_key = _underscore_to_camel(k)
             res[new_key] = v
         return res

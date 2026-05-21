@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from __future__ import annotations
+import asyncio
+
 import voluptuous as vol
 
 from typing import Any
@@ -14,10 +15,10 @@ from homeassistant.const import (
 )
 from .refoss_ha.discovery import Discovery
 from .refoss_ha.exceptions import SocketError
-from .const import _LOGGER, UPDATE_INTERVAL
+from .const import _LOGGER, DISCOVERY_PORT, DISCOVERY_TIMEOUT, UPDATE_INTERVAL, DOMAIN
 
-
-from .const import DISCOVERY_TIMEOUT, DOMAIN
+# Lock to serialize discovery operations and prevent port binding conflicts.
+_discovery_lock = asyncio.Lock()
 
 
 class RefossConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -63,12 +64,12 @@ class RefossConfigFlow(ConfigFlow, domain=DOMAIN):
             if not device:
                 errors["base"] = "no_devices_found"
             else:
-                if mac := device[CONF_MAC]:
+                if mac := device.get(CONF_MAC):
                     await self.async_set_unique_id(mac)
                     if step_id == "user":
                         self._abort_if_unique_id_configured({CONF_HOST: host})
                         return self.async_create_entry(
-                            title=device["devName"],
+                            title=device.get("devName", "Unknown"),
                             data={
                                 CONF_HOST: host,
                                 UPDATE_INTERVAL: self.update_interval,
@@ -106,14 +107,15 @@ class RefossConfigFlow(ConfigFlow, domain=DOMAIN):
 async def start_scan_device(host: str) -> dict | None:
     """Scan device on the host."""
     device = None
-    discovery_server = Discovery()
-    try:
-        await discovery_server.initialize()
-        device = await discovery_server.broadcast_msg(
-            ip=host, wait_for=DISCOVERY_TIMEOUT
-        )
-    except SocketError:
-        _LOGGER.debug(f"Failed socket scan on {host}")
-    finally:
-        discovery_server.closeDiscovery()
+    async with _discovery_lock:
+        discovery_server = Discovery(port=DISCOVERY_PORT)
+        try:
+            await discovery_server.initialize()
+            device = await discovery_server.broadcast_msg(
+                ip=host, wait_for=DISCOVERY_TIMEOUT
+            )
+        except (SocketError, OSError):
+            _LOGGER.debug("Failed socket scan on %s", host)
+        finally:
+            discovery_server.close_discovery()
     return device
